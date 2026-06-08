@@ -1,0 +1,93 @@
+{
+  "entities": {
+    "News": {
+      "title": "News Post",
+      "description": "A news article or update posted by an admin.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The headline of the news post." },
+        "content": { "type": "string", "description": "The main text content (Markdown supported)." },
+        "imageUrls": { 
+          "type": "array", 
+          "items": { "type": "string" },
+          "description": "Array of URLs for images." 
+        },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the post was created." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "When the post was last edited." },
+        "isPublished": { "type": "boolean", "description": "Whether the post is visible to the public." }
+      },
+      "required": ["title", "content", "createdAt"]
+    },
+    "User": {
+      "title": "User Profile",
+      "description": "Information about a user, including their role.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "displayName": { "type": "string" }
+      },
+      "required": ["email", "role"]
+    },
+    "Page": {
+      "title": "Page Content",
+      "description": "Dynamic content for a specific menu page.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "object", "description": "Map of language codes to titles." },
+        "content": { "type": "object", "description": "Map of language codes to content (Markdown supported)." },
+        "imageUrls": { 
+          "type": "array", 
+          "items": { "type": "string" },
+          "description": "Array of URLs for images." 
+        },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "When the page was last edited." }
+      },
+      "required": ["title", "content"]
+    },
+    "Config": {
+      "title": "Configuration",
+      "description": "Core app configurations like navigation and menu hierarchy structures.",
+      "type": "object",
+      "properties": {
+        "menuStructure": { "type": "array", "description": "Navigation menu structure." },
+        "nestedStructures": { "type": "object", "description": "Layered subcategory definitions." },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ContactMessage": {
+      "title": "Contact Message",
+      "description": "Submission parameters from the website contact us form.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Sender's full name" },
+        "email": { "type": "string", "format": "email", "description": "Sender's email address" },
+        "message": { "type": "string", "description": "Custom query message body" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the message was submitted." }
+      },
+      "required": ["name", "email", "message", "createdAt"]
+    }
+  },
+  "firestore": {
+    "news": {
+      "schema": "News",
+      "description": "Collection of news posts."
+    },
+    "users": {
+      "schema": "User",
+      "description": "Collection of user profiles and roles."
+    },
+    "pages": {
+      "schema": "Page",
+      "description": "Collection of dynamic page content."
+    },
+    "config": {
+      "schema": "Config",
+      "description": "Collection of global application configuration files."
+    },
+    "contact_messages": {
+      "schema": "ContactMessage",
+      "description": "Form submissions from visitors."
+    }
+  }
+}

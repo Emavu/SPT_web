@@ -1,0 +1,68 @@
+rules_version = '2';
+
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return request.auth != null && (
+        // Hardcoded admins - checking email from both token and optionally providerData if available
+        request.auth.token.email in ["ema.uleckaite@gmail.com", "dgarmus@spt.lt", "dgarmus@spt.com"] ||
+        // Check verified email if the provider supports it
+        (request.auth.token.email_verified == true && request.auth.token.email in ["ema.uleckaite@gmail.com", "dgarmus@spt.lt"]) ||
+        // Fallback to checking the users collection
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isValidNews(data) {
+      return data.keys().hasAll(['title', 'content', 'imageUrls', 'createdAt', 'isPublished']);
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role']) &&
+             data.email is string &&
+             data.role in ['admin', 'user'];
+    }
+
+    // News Rules
+    match /news/{newsId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow create: if isAdmin() && isValidNews(request.resource.data);
+      allow update: if isAdmin() && isValidNews(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // User Rules
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId && (request.resource.data.role == resource.data.role || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Pages Rules
+    match /pages/{pageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Config Rules
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Contact Messages Rules
+    match /contact_messages/{messageId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
