@@ -6,9 +6,8 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
-    // GitHub Pages for this repo is: https://emavu.github.io/SPT/
-    // So all assets must be served from /SPT/
-    base: '/SPT/',
+
+    base: '/SPT_web/',
 
     plugins: [react(), tailwindcss()],
 
