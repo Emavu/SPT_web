@@ -1140,7 +1140,7 @@ function NavDropdown({
 export default function AppWrapper() {
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter basename="/SPT_web">
         <App />
       </BrowserRouter>
     </ErrorBoundary>
