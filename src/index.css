@@ -9,7 +9,9 @@
 }
 
 /* Ensure strong and b elements inside and outside prose are bold */
-strong, b, .prose strong, .prose b {
+strong, b, .prose strong, .prose b,
+h1 strong, h1 b, h2 strong, h2 b, h3 strong, h3 b, h4 strong, h4 b,
+.prose-sm h1 strong, .prose-sm h1 b, .prose-sm h2 strong, .prose-sm h2 b, .prose-sm h3 strong, .prose-sm h3 b, .prose-sm h4 strong, .prose-sm h4 b {
   font-weight: 700 !important;
 }
 
@@ -37,13 +39,22 @@ h1 *, h2 *, h3 *, h4 *, h5 *, h6 *,
 }
 
 /* Delete H2 and H3 padding and margin */
-h1, h2, h3, h4, h5, h6,
-.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6,
-.prose-sm h1, .prose-sm h2, .prose-sm h3, .prose-sm h4, .prose-sm h5, .prose-sm h6 {
+h1, h2, h3, h5, h6,
+.prose h1, .prose h2, .prose h3, .prose h5, .prose h6,
+.prose-sm h1, .prose-sm h2, .prose-sm h3, .prose-sm h5, .prose-sm h6 {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   margin-top: 10px !important;
   margin-bottom: 4px !important;
+}
+
+/* Make H4 blocks render in the original size and spacing of body text *p* inside prose */
+.prose h4, .prose-sm h4 {
+  font-size: 14px !important;
+  line-height: 1.625 !important;
+  font-weight: inherit;
+  margin-top: 0px !important;
+  margin-bottom: 8px !important;
 }
 
 /* Enforce tight gaps on paragraph elements across prose containers */

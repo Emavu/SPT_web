@@ -1,3 +1,7 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
@@ -75,13 +79,16 @@ import {
   MapPin,
   Underline as UnderlineIcon,
   Link as LinkIcon,
-  Palette
+  Palette,
+  Eye
 } from 'lucide-react';
 import rehypeRaw from 'rehype-raw';
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
 import { format } from 'date-fns';
 import { GoogleGenAI } from "@google/genai";
+import { RichTextEditor } from './components/RichTextEditor';
+
 
 // Error Handling Types
 enum OperationType {
@@ -298,7 +305,7 @@ function BentoCard({
         <div className={cn("p-4 md:p-5 flex flex-col justify-between transition-all duration-500 flex-1", isExpanded ? "p-8 lg:p-12" : "")}>
           <div className="space-y-2">
             <h1 className={cn("font-black leading-tight transition-colors group-hover:text-red-600", isExpanded ? "text-2xl md:text-3xl" : "text-xs")}>
-              {title}
+              {stripMarkdown(title)}
             </h1>
             {isExpanded ? (
               <div className="text-gray-500 leading-relaxed transition-all prose prose-sm prose-red prose-headings:font-black prose-headings:tracking-tighter max-w-none opacity-100">
@@ -683,7 +690,7 @@ function ImageGallery({ images, className }: { images: string[], className?: str
           onError={(e) => {
             const target = e.currentTarget;
             if (!target.src.includes('unsplash.com')) {
-              target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&h=800&q=80";
+              target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1275&h=800&q=80";
             }
           }}
         />
@@ -861,15 +868,15 @@ heroSub: {
   savePage: { lt: 'Išsaugoti puslapį', en: 'Save Page', de: 'Seite speichern', uk: 'Зберегти сторінку' },
   backToNews: { lt: 'Atgal į naujienas', en: 'Back to News', de: 'Zurück zu den News', uk: 'Назад до новин' },
   back: { lt: 'Grįžti', en: 'Back', de: 'Zurück', uk: 'Назад' },
-  relatedCategories: { lt: 'Kiti susiję skyriai', en: 'Other related sections', de: 'Andere verwandte Bereiche', uk: 'Інші пов’язані розділи' },
+  relatedCategories: { lt: 'Kiti produktai', en: 'Other related products', de: 'Andere verwandte Bereiche', uk: 'Інші пов’язані розділи' },
   learnMore: {
-    lt: "Sužinoti daugiau",
+    lt: "Daugiau",
     en: "Learn More",
     de: "Mehr erfahren",
     uk: "Дізнатися більше",
   },
-  viewMore: { lt: 'Rodyti daugiau', en: 'View More', de: 'Mehr anzeigen', uk: 'Показати більше' },
-  readMore: { lt: 'Skaityti toliau', en: 'Read More', de: 'Weiterlesen', uk: 'Читати далі' },
+  viewMore: { lt: 'Daugiau', en: 'View More', de: 'Mehr anzeigen', uk: 'Показати більше' },
+  readMore: { lt: 'Daugiau', en: 'Read More', de: 'Weiterlesen', uk: 'Читати далі' },
   quickLinks: { lt: 'Nuorodos', en: 'Quick Links', de: 'Schnelllinks', uk: 'Корисні посилання' },
   legal: { lt: 'Teisinė informacija', en: 'Legal', de: 'Rechtliches', uk: 'Юридична інформація' },
   allRightsReserved: { lt: 'Visos teisės saugomos', en: 'All rights reserved', de: 'Alle Rechte vorbehalten', uk: 'Усі права захищені' },
@@ -974,7 +981,7 @@ type Page = 'home' | 'solutions' | 'services' | 'products' | 'about' | 'contact'
   'flow_meters' | 'level_meters' | 'industrial_pumps' | 'tanker_equipment' | 'pipeline_fittings' | 'tank_fittings' | 'loading_arms' | 'terminal_equipment' | 'dry_disconnect' | string;
 
 // Constants
-const ADMIN_EMAILS = ["ema.uleckaite@gmail.com", "dgarmus@spt.lt", "dgarmus@spt.com"];
+const ADMIN_EMAILS = ["ema.uleckaite@gmail.com", "info@spt.lt", "dgarmus@spt.lt"];
 const PRIMARY_RED = "#C42727";
 
 const MENU_STRUCTURE = [
@@ -1040,7 +1047,7 @@ const NESTED_STRUCTURES: Record<string, string[]> = {
 
 const isStaticPage = (id: string) => {
   const staticKeys = [
-    'home', 'solutions', 'services', 'products', 'about', 'contact',
+    'home', 'solutions', 'services', 'products', 'about', 'contact', 'footer',
     'aviation', 'chemical_terminals', 'lpg_terminals', 'oil_terminals', 'oil_production', 'product_blending', 'railway', 'pipeline_cleaning',
     'design', 'engineering_consulting', 'technical_service', 'training', 'spare_parts',
     'flow_meters', 'level_meters', 'industrial_pumps', 'tanker_equipment', 'pipeline_fittings', 'tank_fittings', 'loading_arms', 'terminal_equipment', 'dry_disconnect',
@@ -1140,7 +1147,7 @@ function NavDropdown({
 export default function AppWrapper() {
   return (
     <ErrorBoundary>
-      <BrowserRouter basename="/SPT_web">
+      <BrowserRouter>
         <App />
       </BrowserRouter>
     </ErrorBoundary>
@@ -1286,7 +1293,7 @@ function AdminPage({
         className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl"
       >
         <div className="text-center mb-8">
-          <img src="./logotipas_spt.png" alt="SPT" className="h-12 mx-auto mb-4" />
+          <img src="/logotipas_spt.png" alt="SPT" className="h-12 mx-auto mb-4" />
           <h2 className="text-2xl font-bold uppercase tracking-tight">Admin portalas</h2>
           <p className="text-gray-500 text-sm">Prisijunkite prie svetainės valdymo</p>
         </div>
@@ -1311,7 +1318,7 @@ function AdminPage({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-100 outline-none focus:ring-2 focus:ring-red-600 transition-all"
-              placeholder="dgarmus@spt.lt"
+              placeholder="e-mail"
               required
             />
           </div>
@@ -1397,6 +1404,13 @@ function App() {
   const [pagesContent, setPagesContent] = useState<Record<string, PageContent>>({});
   const [isEditingPage, setIsEditingPage] = useState<string | null>(null);
   const [pageEditForm, setPageEditForm] = useState<Partial<PageContent>>({});
+  const [editingStatIndex, setEditingStatIndex] = useState<number | null>(null);
+  const [editingStatForm, setEditingStatForm] = useState<{
+    value: { lt: string; en: string; de: string; uk: string };
+    label: { lt: string; en: string; de: string; uk: string };
+  } | null>(null);
+  const [pageEditorMode, setPageEditorMode] = useState<'write' | 'preview'>('write');
+  const [newsEditorMode, setNewsEditorMode] = useState<'write' | 'preview'>('write');
   const [expandedPages, setExpandedPages] = useState<Record<string, boolean>>({});
   const [expandedMobileCategories, setExpandedMobileCategories] = useState<Record<string, boolean>>({});
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -1539,7 +1553,7 @@ function App() {
       const subject = `Užklausa iš SPT svetainės nuo: ${contactName.trim()}`;
       const body = `Vardas: ${contactName.trim()}\nEl. paštas: ${contactEmail.trim()}\n\nŽinutė:\n${contactMessage.trim()}`;
       
-      const mailtoUrl = `mailto:dgarmus@spt.lt?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const mailtoUrl = `mailto:info@spt.lt?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       
       // Open native mail app draft
       window.location.href = mailtoUrl;
@@ -1905,7 +1919,7 @@ function App() {
               de: "Dies ist ein Beispielbeitrag, der unser neues CMS demonstriert. Sie können diesen Beitrag mit den Admin-Tools bearbeiten oder löschen. Wir leisten Pionierarbeit bei der nächsten Generation administrativer Lösungen für physikalische Forschungseinrichtungen weltweit.\n\n### Hauptmerkmale:\n- Echtzeit-Updates\n- Markdown-Unterstützung\n- Professionelle Bildintegration",
               uk: "Це приклад повідомлення, що демонструє нашу нову CMS. Ви можете редагувати або видаляти це повідомлення за допомогою інструментів адміністратора. Ми впроваджуємо адміністративні рішення наступного покоління для фізичних дослідницьких центрів по всьому світу.\n\n### Ключові особливості:\n- Оновлення в реальному часі\n- Підтримка Markdown\n- Професійна інтеграція зображень"
             },
-            imageUrls: ["https://picsum.photos/seed/physics/1200/800"],
+            imageUrls: ["https://picsum.photos/seed/physics/1275/800"],
             createdAt: Timestamp.now(),
             isPublished: true
           });
@@ -2020,6 +2034,36 @@ function App() {
     }
   };
 
+  const handleSaveStat = async () => {
+    if (!db || editingStatIndex === null || !editingStatForm) return;
+    try {
+      const mainPageData = pagesContent['about'];
+      const currentStats = mainPageData?.stats || [
+        { value: { lt: '2001', en: '2001', de: '2001', uk: '2001' }, label: { lt: 'Įkurta', en: 'Established', de: 'Gegründet', uk: 'Засновано' } },
+        { value: { lt: '20+', en: '20+', de: '20+', uk: '20+' }, label: { lt: 'Metų patirties', en: 'Years of Experience', de: 'Jahre Erfahrung', uk: 'Років досвіду' } }
+      ];
+      
+      const newStats = [...currentStats];
+      newStats[editingStatIndex] = {
+        value: { ...editingStatForm.value },
+        label: { ...editingStatForm.label }
+      };
+
+      const payload = {
+        ...(mainPageData || {}),
+        id: 'about',
+        stats: newStats,
+        updatedAt: Timestamp.now()
+      };
+
+      await setDoc(doc(db, 'pages', 'about'), payload);
+      setEditingStatIndex(null);
+      setEditingStatForm(null);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'pages/about');
+    }
+  };
+
   const handleDeletePost = async (id: string) => {
     if (!profile || profile.role !== 'admin' || !db) return;
     try {
@@ -2046,6 +2090,76 @@ function App() {
   const isAdmin = profile?.role === 'admin';
 
   const t = (key: string) => TRANSLATIONS[key]?.[language] || key;
+
+  const getCategoryOptions = () => {
+    const standardGroups = [
+      {
+        label: language === 'lt' ? 'Srauto matuokliai' : 'Flow Meters',
+        options: [
+          { value: 'flow_meters_volumetric', label: 'Tūriniai (Volumetric)' },
+          { value: 'flow_meters_gear', label: 'Krumpliaratiniai (Gear)' },
+          { value: 'flow_meters_turbine', label: 'Turbininiai (Turbine)' },
+          { value: 'flow_meters_coriolis', label: 'Koriolio masės (Coriolis)' },
+          { value: 'flow_meters_accessories', label: language === 'lt' ? 'Srauto matuoklių priedai' : 'Flow meter accessories' }
+        ]
+      },
+      {
+        label: language === 'lt' ? 'Kiti produktai' : 'Other Products',
+        options: [
+          { value: 'level_meters', label: language === 'lt' ? 'Lygio matuokliai' : 'Level meters' },
+          { value: 'industrial_pumps', label: language === 'lt' ? 'Pramoniniai siurbliai' : 'Industrial pumps' },
+          { value: 'tanker_equipment', label: language === 'lt' ? 'Autocisternų įranga' : 'Tanker equipment' },
+          { value: 'pipeline_fittings', label: language === 'lt' ? 'Vamzdynų armatūra' : 'Pipeline fittings' },
+          { value: 'tank_fittings', label: language === 'lt' ? 'Rezervuarų armatūra' : 'Tank fittings' },
+          { value: 'loading_arms', label: language === 'lt' ? 'Užpylimo rankovės' : 'Loading arms' },
+          { value: 'terminal_equipment', label: language === 'lt' ? 'Terminalų įranga' : 'Terminal equipment' },
+          { value: 'dry_disconnect', label: language === 'lt' ? 'Sauso atjungimo movos' : 'Dry disconnect couplings' }
+        ]
+      },
+      {
+        label: language === 'lt' ? 'Sprendimai' : 'Solutions',
+        options: [
+          { value: 'aviation', label: language === 'lt' ? 'Aviacija' : 'Aviation' },
+          { value: 'chemical_terminals', label: language === 'lt' ? 'Chemijos terminalai' : 'Chemical terminals' },
+          { value: 'lpg_terminals', label: language === 'lt' ? 'SND terminalai' : 'LPG terminals' },
+          { value: 'oil_terminals', label: language === 'lt' ? 'Naftos produktų terminalai' : 'Oil product terminals' },
+          { value: 'oil_production', label: language === 'lt' ? 'Alyvų ir tepalų gamyba' : 'Oil and lubricant production' },
+          { value: 'product_blending', label: language === 'lt' ? 'Produktų maišymas' : 'Product blending' },
+          { value: 'railway', label: language === 'lt' ? 'Geležinkelis' : 'Railway' },
+          { value: 'pipeline_cleaning', label: language === 'lt' ? 'Vamzdynų išvalymo sistemos' : 'Pipeline cleaning systems' }
+        ]
+      },
+      {
+        label: language === 'lt' ? 'Paslaugos' : 'Services',
+        options: [
+          { value: 'design', label: language === 'lt' ? 'Projektavimas' : 'Design' },
+          { value: 'engineering_consulting', label: language === 'lt' ? 'Inžinerinės konsultacijos' : 'Engineering consulting' },
+          { value: 'technical_service', label: language === 'lt' ? 'Techninis aptarnavimas' : 'Technical service' },
+          { value: 'training', label: language === 'lt' ? 'Apmokymai' : 'Training' },
+          { value: 'spare_parts', label: language === 'lt' ? 'Atsarginių dalių tiekimas' : 'Spare parts supply' }
+        ]
+      }
+    ];
+
+    const standardOptionValues = new Set(standardGroups.flatMap(g => g.options.map(o => o.value)));
+    const dynamicOptions: { value: string; label: string }[] = [];
+
+    Object.entries(pagesContent).forEach(([id, page]) => {
+      if (!standardOptionValues.has(id) && id !== 'home' && !page.isDeleted) {
+        const pageTitle = page.title?.[language] || id;
+        dynamicOptions.push({ value: id, label: pageTitle });
+      }
+    });
+
+    if (dynamicOptions.length > 0) {
+      standardGroups.push({
+        label: language === 'lt' ? 'Kiti puslapiai ir dinaminės kategorijos' : 'Other Pages & Dynamic Categories',
+        options: dynamicOptions
+      });
+    }
+
+    return standardGroups;
+  };
 
   const [translatingPostId, setTranslatingPostId] = useState<string | null>(null);
   const [tempTranslations, setTempTranslations] = useState<Record<string, Partial<Record<Language, { title: string, content: string }>>>>({});
@@ -2191,7 +2305,7 @@ function App() {
               return (
                 <div className="flex justify-between items-center mb-10 pb-4 border-b border-gray-100">
                   <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">
-                    {pageData?.title?.[language] || t(subId)}
+                    {stripMarkdown(pageData?.title?.[language] || t(subId))}
                   </h2>
                   {isAdmin && (
                     <div className="flex justify-end shrink-0">
@@ -2220,7 +2334,7 @@ function App() {
               <div className="flex flex-col lg:flex-row justify-between lg:items-stretch gap-12">
                 <div className="lg:w-[55.6%] space-y-8 flex flex-col">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">{pageData?.title?.[language] || t(subId)}</h2>
+                    <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">{stripMarkdown(pageData?.title?.[language] || t(subId))}</h2>
                     {isAdmin && (
                       <button 
                         onClick={() => {
@@ -2241,8 +2355,8 @@ function App() {
                   </div>
 
                   <div className={cn(
-                    "prose prose-sm prose-red max-w-none text-gray-600 relative transition-all duration-700 overflow-hidden flex-grow",
-                    !expandedPages[subId] && (pageData?.content?.[language]?.length > 1000) ? "max-h-[600px]" : "max-h-none"
+                    "prose prose-sm prose-red max-w-none text-gray-650 relative transition-all duration-700 overflow-hidden flex-grow",
+                    !expandedPages[subId] && (pageData?.content?.[language]?.length > 1275) ? "max-h-[530px]" : "max-h-none"
                   )}>
                     {pageData?.content?.[language] ? (
                       <Markdown rehypePlugins={[rehypeRaw]}>{pageData.content[language]}</Markdown>
@@ -2250,12 +2364,12 @@ function App() {
                       <p>{t('heroSub')}</p>
                     )}
                     
-                    {!expandedPages[subId] && (pageData?.content?.[language]?.length > 1000) && (
+                    {!expandedPages[subId] && (pageData?.content?.[language]?.length > 1275) && (
                       <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-white to-transparent pointer-events-none" />
                     )}
                   </div>
 
-                  {pageData?.content?.[language] && pageData.content[language].length > 1000 && (
+                  {pageData?.content?.[language] && pageData.content[language].length > 1275 && (
                     <div className="pt-4 border-t border-gray-100 mt-auto">
                       <button 
                         onClick={() => setExpandedPages(prev => ({ ...prev, [subId]: !prev[subId] }))}
@@ -2358,7 +2472,7 @@ function App() {
                           {sibTitle}
                         </h4>
                         <p className="text-xs text-gray-500 line-clamp-2 flex-grow font-sans">
-                          {sibData?.content?.[language] || t('heroSub')}
+                          {stripMarkdown(sibData?.content?.[language] || t('heroSub'))}
                         </p>
                         <div className="mt-4 flex items-center gap-1.5 text-red-600 text-[9px] font-black uppercase tracking-widest font-sans">
                           {t('learnMore')} <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -2430,7 +2544,7 @@ function App() {
                 >
                   <div className="text-red-600 font-black text-[10px] uppercase tracking-widest mb-2">{result.type}</div>
                   <h3 className="text-xl font-bold mb-2 group-hover:text-red-600 transition-colors">
-                    {result.type === 'news' ? getPostTitle(result, language) : (result.title?.[language] || t(result.id))}
+                    {stripMarkdown(result.type === 'news' ? getPostTitle(result, language) : (result.title?.[language] || t(result.id)))}
                   </h3>
                   <p className="text-gray-500 text-sm line-clamp-3">
                     {result.type === 'news' ? stripMarkdown(getPostContent(result, language)) : stripMarkdown(result.content?.[language] || t('heroSub'))}
@@ -2584,18 +2698,48 @@ function App() {
                     <h2 className="text-4xl font-black uppercase tracking-tighter leading-none">{mainPageData?.title?.[language] || t(currentPage === 'about' ? 'aboutTitle' : currentPage)}</h2>
                     <div className={cn(
                       "prose prose-sm prose-red text-gray-500 font-medium max-w-none relative transition-all duration-700 overflow-hidden break-words flex-grow",
-                      !expandedPages[currentPage] && (mainPageData?.content?.[language]?.length > 1000) ? "max-h-[600px]" : "max-h-none"
+                      !expandedPages[currentPage] && (mainPageData?.content?.[language]?.length > 1275) ? "max-h-[530px]" : "max-h-none"
                     )}>
-                      {mainPageData?.content?.[language] ? (
+                      {currentPage === 'about' ? (
+                        <div className="space-y-6">
+                          <p>{t('aboutText1')}</p>
+                          <p>{t('aboutText2')}</p>
+                          {(() => {
+                            const stats = mainPageData?.stats || [
+                              { value: { lt: '2001', en: '2001', de: '2001', uk: '2001' }, label: { lt: 'Įkurta', en: 'Established', de: 'Gegründet', uk: 'Засновано' } },
+                              { value: { lt: '20+', en: '20+', de: '20+', uk: '20+' }, label: { lt: 'Metų patirties', en: 'Years of Experience', de: 'Jahre Erfahrung', uk: 'Років досвіду' } }
+                            ];
+                            return (
+                              <div className="grid grid-cols-2 gap-8 py-8">
+                                {stats.map((stat, idx) => (
+                                  <div key={idx} className={cn(isAdmin && "cursor-pointer hover:bg-red-50 p-2 rounded-lg transition-colors border border-transparent hover:border-red-100")} 
+                                    onClick={() => {
+                                      if (isAdmin) {
+                                        setEditingStatIndex(idx);
+                                        setEditingStatForm({
+                                          value: { ...stat.value },
+                                          label: { ...stat.label }
+                                        });
+                                      }
+                                    }}>
+                                    <div className="text-2xl font-black text-red-600">{stat.value[language]}</div>
+                                    <div className="text-xs font-bold uppercase tracking-widest text-gray-400">{stat.label[language]}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      ) : mainPageData?.content?.[language] ? (
                         <Markdown rehypePlugins={[rehypeRaw]}>{mainPageData.content[language]}</Markdown>
                       ) : getFallbackContent()}
                       
-                      {!expandedPages[currentPage] && (mainPageData?.content?.[language]?.length > 1000) && (
+                      {!expandedPages[currentPage] && (mainPageData?.content?.[language]?.length > 1275) && (
                         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none" />
                       )}
                     </div>
 
-                    {!expandedPages[currentPage] && (mainPageData?.content?.[language]?.length > 1000) && (
+                    {!expandedPages[currentPage] && (mainPageData?.content?.[language]?.length > 1275) && (
                       <button 
                         onClick={() => setExpandedPages(prev => ({ ...prev, [currentPage]: true }))}
                         className="flex items-center gap-2 text-red-600 font-black uppercase text-[10px] tracking-widest hover:gap-4 transition-all"
@@ -2612,12 +2756,12 @@ function App() {
                     ) : (
                       <div className={cn("w-full bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-center overflow-hidden shadow-2xl shadow-gray-200/50 relative", mainRatioClass)}>
                         <img 
-                          src={`https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&h=800&q=80`} 
+                          src={`https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1275&h=800&q=80`} 
                           alt={mainPageData?.title?.[language] || t(currentPage)} 
                           className="absolute inset-0 w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" 
                           referrerPolicy="no-referrer" 
                           onError={(e) => {
-                            e.currentTarget.src = "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&h=800&q=80";
+                            e.currentTarget.src = "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1275&h=800&q=80";
                           }}
                         />
                       </div>
@@ -2714,7 +2858,7 @@ function App() {
                             {sibTitle}
                           </h4>
                           <p className="text-xs text-gray-500 line-clamp-2 flex-grow font-sans">
-                            {sibData?.content?.[language] || t('heroSub')}
+                            {stripMarkdown(sibData?.content?.[language] || t('heroSub'))}
                           </p>
                           <div className="mt-4 flex items-center gap-1.5 text-red-600 text-[9px] font-black uppercase tracking-widest font-sans">
                             {t('learnMore')} <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -2765,11 +2909,11 @@ function App() {
               <div className="space-y-8">
                 <div>
                   <p className="text-base font-medium">
-T. Masiulio g. 18B, LT-52460 Kaunas </p>
+T. Masiulio 18B, LT-52460 Kaunas </p>
                 </div>
                 <div>
                   <p className="text-base font-medium">
-                    <a href="mailto:dgarmus@spt.lt" className="text-red-600 hover:underline">dgarmus@spt.lt</a>
+                    <a href="mailto:info@spt.lt" className="text-red-600 hover:underline">info@spt.lt</a>
                     <br />
                     +370 37 407277
                     <br />
@@ -2785,7 +2929,7 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
                     <div className="space-y-2">
                       <h4 className="font-bold text-gray-900">{t('contactSuccess')}</h4>
                       <p className="text-xs text-gray-500">
-                        Nuoroda atverti el. pašto programą su sugeneruotu laišku sėkmingai sukurta. Gavėjas: dgarmus@spt.lt
+                        Nuoroda atverti el. pašto programą su sugeneruotu laišku sėkmingai sukurta. Gavėjas: info@spt.lt
                       </p>
                     </div>
                     
@@ -2890,6 +3034,9 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
           </motion.div>
         );
       default:
+        if (pagesContent[currentPage] && pagesContent[currentPage].isDeleted !== true) {
+          return renderSubcategoryPage(currentPage);
+        }
         if (currentPage.startsWith('news_')) {
           const postId = currentPage.replace('news_', '');
           const post = news.find(p => p.id === postId);
@@ -3096,7 +3243,7 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
                             {post.createdAt?.toDate ? format(post.createdAt.toDate(), 'yyyy-MM-dd') : t('recently')}
                           </div>
                           
-                          <h4 className="text-xl font-black uppercase tracking-tighter mb-4 leading-none group-hover:text-red-600 transition-colors line-clamp-2 italic">
+                          <h4 className="text-xl font-black uppercase tracking-wider mb-4 leading-none group-hover:text-red-600 transition-colors line-clamp-2 italic">
                             {getPostTitle(post, language)}
                           </h4>
                           
@@ -3200,7 +3347,7 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
         <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center gap-4">
             <button onClick={() => setCurrentPage('home')} className="flex items-center gap-4 hover:opacity-80 transition-opacity shrink-0">
-              <img src="./logotipas_spt.png" alt="SPT logotipas_spt" className="h-12 w-auto object-contain" referrerPolicy="no-referrer" />
+              <img src="/logotipas_spt.png" alt="SPT logotipas_spt" className="h-12 w-auto object-contain" referrerPolicy="no-referrer" />
               <div className="hidden xl:block text-left">
                 <h1 
                   className="text-[10px] text-gray-500 font-medium tracking-[0.15em] uppercase max-w-[140px] leading-snug mt-[10px]"
@@ -3335,7 +3482,7 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
             >
               <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
                 <div className="flex items-center gap-3">
-                  <img src="./logotipas_spt.png" alt="SPT logotipas_spt" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+                  <img src="/logotipas_spt.png" alt="SPT logotipas_spt" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
                   <span className="text-[10px] text-gray-500 font-medium tracking-[0.2em] uppercase" >Skysčių perpylimo technologijos</span>
                 </div>
                 <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
@@ -3563,7 +3710,7 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
         <header className="relative py-16 md:py-32 overflow-hidden bg-black text-white group/hero">
           <div className="absolute inset-0 z-0">
             <img 
-              src="./cover-image.jpg" 
+              src="/cover-image.jpg" 
               alt="Cover" 
               className="w-full h-full object-cover grayscale brightness-50 group-hover/hero:grayscale-0 group-hover/hero:brightness-90 transition-all duration-1000"
               referrerPolicy="no-referrer"
@@ -4019,100 +4166,203 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
           </div>
         )}
 
-        {/* Categories Add Subcategory form popup */}
-        {showAddForm && (
-          <div className="fixed inset-0 z-[120] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl p-6 w-full max-w-md">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-                <h4 className="text-sm font-black uppercase text-gray-900">
-                  Pridėti naują subkategoriją
-                </h4>
-                <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-black">
-                  <X className="w-4 h-4" />
+        {/* Targeted Stats Editing Modal */}
+        {editingStatIndex !== null && editingStatForm && (
+          <div className="fixed inset-0 z-[160] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl border border-gray-150 shadow-2xl p-8 w-full max-w-lg relative overflow-hidden"
+            >
+              <div className="flex justify-between items-center mb-6 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 px-2.5 bg-red-600 text-white rounded-lg text-xs font-black">STATISTIKA</div>
+                  <h4 className="text-xs font-black uppercase text-gray-900 tracking-wider font-sans">
+                    {language === 'lt' ? 'Redaguoti statistikos rodiklį' : 'Edit Statistic'}
+                  </h4>
+                </div>
+                <button 
+                  onClick={() => {
+                    setEditingStatIndex(null);
+                    setEditingStatForm(null);
+                  }} 
+                  className="text-gray-400 hover:text-black transition-colors"
+                >
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleAddSubcategory} className="space-y-4">
+              <div className="space-y-6 text-left max-h-[60vh] overflow-y-auto pr-1">
+                {(['lt', 'en', 'de', 'uk'] as const).map(lang => (
+                  <div key={lang} className="p-4 bg-gray-50/50 rounded-2xl border border-gray-200/50 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono bg-red-600 text-white font-bold px-2 py-0.5 rounded uppercase tracking-wider">{lang}</span>
+                      <span className="text-xs font-bold text-gray-700 capitalize font-sans">
+                        {lang === 'lt' ? 'Lietuvių' : lang === 'en' ? 'English' : lang === 'de' ? 'Deutsch' : 'Українська'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 font-sans">
+                          {language === 'lt' ? 'Skaičius / reikšmė:' : 'Number / value:'}
+                        </label>
+                        <input 
+                          type="text"
+                          value={editingStatForm.value[lang] || ''}
+                          onChange={e => setEditingStatForm({
+                            ...editingStatForm,
+                            value: { ...editingStatForm.value, [lang]: e.target.value }
+                          })}
+                          placeholder="pvz: 20+"
+                          className="w-full px-3 py-2 bg-white border border-gray-200 text-xs rounded-xl focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none font-bold text-gray-800 transition-all font-sans"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 font-sans">
+                          {language === 'lt' ? 'Aprašymas / etiketė:' : 'Label / description:'}
+                        </label>
+                        <input 
+                          type="text"
+                          value={editingStatForm.label[lang] || ''}
+                          onChange={e => setEditingStatForm({
+                            ...editingStatForm,
+                            label: { ...editingStatForm.label, [lang]: e.target.value }
+                          })}
+                          placeholder="pvz: Metų patirties"
+                          className="w-full px-3 py-2 bg-white border border-gray-200 text-xs rounded-xl focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none font-bold text-gray-800 transition-all font-sans"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-3 pt-6 border-t border-gray-100 mt-6 font-sans">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setEditingStatIndex(null);
+                    setEditingStatForm(null);
+                  }}
+                  className="flex-1 py-3 border border-gray-200 font-bold text-xs uppercase text-gray-500 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Atšaukti
+                </button>
+                <button 
+                  onClick={handleSaveStat}
+                  className="flex-1 py-3 bg-red-600 text-white font-bold text-xs uppercase rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200/50"
+                >
+                  Išsaugoti
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Categories Add Subcategory form popup */}
+        {showAddForm && (
+          <div className="fixed inset-0 z-[120] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl border border-gray-150 shadow-2xl p-8 w-full max-w-md relative overflow-hidden"
+            >
+              <div className="flex justify-between items-center mb-6 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <div className="p-1 px-2.5 bg-red-600 text-white rounded-lg text-xs font-black">NEW</div>
+                  <h4 className="text-xs font-black uppercase text-gray-900 tracking-wider">
+                    {language === 'lt' ? 'Nauja subkategorija / produktas' : 'New Subcategory / Product'}
+                  </h4>
+                </div>
+                <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-black">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddSubcategory} className="space-y-5 text-left font-sans">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 mb-1">
-                    Tėvinis skyrius:
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">
+                    {language === 'lt' ? 'Tėvinė kategorija:' : 'Parent Category:'}
                   </label>
-                  <div className="bg-gray-50 border border-gray-200 text-xs font-bold px-3 py-2 text-gray-700 rounded-lg uppercase">
+                  <div className="bg-gray-50 border border-gray-200 text-xs font-bold px-4 py-2.5 text-gray-700 rounded-xl uppercase">
                     {t(newSubParentId)} ({newSubParentId})
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 mb-1">
-                    Unikalus ID (kodas):
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">
+                    {language === 'lt' ? 'Unikalus ID (nuoroda, be tarpų):' : 'Unique ID (slug, no spaces):'}
                   </label>
                   <input 
                     type="text"
                     required
-                    placeholder="pvz: pipeline_shutoff_valves"
+                    placeholder="pvz: srauto_indikatorius"
                     value={newSubId}
                     onChange={e => setNewSubId(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-100 text-xs rounded-xl focus:ring-2 focus:ring-red-600 outline-none font-bold"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-xs rounded-xl focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none font-bold text-gray-800 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 mb-1">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">
                     LT pavadinimas (Lithuanian Title):
                   </label>
                   <input 
                     type="text"
                     required
-                    placeholder="pvz: Uždaromoji armatūra"
+                    placeholder="pvz: Srauto indikatorius"
                     value={newSubTitleLt}
                     onChange={e => setNewSubTitleLt(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-100 text-xs rounded-xl focus:ring-2 focus:ring-red-600 outline-none font-bold"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-xs rounded-xl focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none font-bold text-gray-800 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-400 mb-1">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">
                     EN pavadinimas (English Title):
                   </label>
                   <input 
                     type="text"
                     required
-                    placeholder="pvz: Shut-off valves"
+                    placeholder="pvz: Flow indicator"
                     value={newSubTitleEn}
                     onChange={e => setNewSubTitleEn(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-100 text-xs rounded-xl focus:ring-2 focus:ring-red-600 outline-none font-bold"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 text-xs rounded-xl focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none font-bold text-gray-800 transition-all"
                   />
                 </div>
 
                 {tocError && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 text-[11px] font-medium leading-relaxed p-3.5 rounded-xl flex items-start gap-2">
+                  <div className="bg-red-50 border border-red-200 text-red-600 text-[11px] font-medium leading-relaxed p-4 rounded-xl flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse mt-1.5 shrink-0" />
                     <span>{tocError}</span>
                   </div>
                 )}
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-3">
                   <button 
                     type="button"
                     onClick={() => setShowAddForm(false)}
-                    className="flex-1 py-3 border border-gray-100 font-bold text-xs uppercase text-gray-500 rounded-xl hover:bg-gray-50"
+                    className="flex-1 py-3 border border-gray-200 font-bold text-xs uppercase text-gray-500 rounded-xl hover:bg-gray-50 transition-colors"
                   >
-                    Atšaukti
+                    {t('cancel')}
                   </button>
                   <button 
                     type="submit"
                     className="flex-1 py-3 bg-red-600 text-white font-bold text-xs uppercase rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200/50"
                   >
-                    Sukurti
+                    {language === 'lt' ? 'Sukurti' : 'Create'}
                   </button>
                 </div>
               </form>
-            </div>
+            </motion.div>
           </div>
         )}
 
         {isEditingPage && (
-          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-gray-50/50">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -4125,29 +4375,38 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="relative w-full max-w-5xl bg-gray-100 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] border border-gray-200"
             >
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              {/* Google Docs-style Header & Control Bar */}
+              <div className="px-8 py-5 border-b border-gray-200/80 flex justify-between items-center bg-white shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-600 text-white rounded-lg">
+                  <div className="p-2 bg-red-600 text-white rounded-xl shadow-md shadow-red-200">
                     <Edit2 className="w-5 h-5" />
                   </div>
-                  <h2 className="text-xl font-black tracking-tight uppercase">
-                    {t('editPage')}: {t(isEditingPage)}
-                  </h2>
+                  <div className="text-left font-sans">
+                    <h2 className="text-sm font-black tracking-tight uppercase text-gray-900 leading-none">
+                      {isEditingPage.toUpperCase()}
+                    </h2>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">{t('editPage')}</p>
+                  </div>
                 </div>
-                <button 
-                  onClick={() => setIsEditingPage(null)}
-                  className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setIsEditingPage(null)}
+                    className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-all"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
 
-              <div className="p-8 overflow-y-auto space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">{t('pageTitleLabel')} ({language.toUpperCase()})</label>
+              {/* Toolbar & Metadata Inputs (Like Google Docs Settings Panel) */}
+              <div className="bg-white border-b border-gray-200 p-6 flex flex-col gap-6 shrink-0 font-sans">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  {/* Title Input */}
+                  <div className="space-y-2 text-left">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">{t('pageTitleLabel')} ({language.toUpperCase()})</label>
                     <input 
                       type="text"
                       value={pageEditForm.title?.[language] || ''}
@@ -4155,34 +4414,35 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
                         ...pageEditForm, 
                         title: { ...pageEditForm.title, [language]: e.target.value } as any
                       })}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-red-600 outline-none transition-all font-bold"
+                      className="w-full px-4 py-2 bg-gray-50 hover:bg-gray-100/30 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-none transition-all font-bold text-sm text-gray-800"
                     />
                   </div>
-                  <div className="space-y-4">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                      <ImageIcon className="w-3 h-3" /> {t('pageImagesLabel')}
+
+                  {/* Images Upload */}
+                  <div className="space-y-2 text-left">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-gray-400" /> {t('pageImagesLabel')}
                     </label>
                     <FileUploader 
                       images={pageEditForm.imageUrls || []} 
                       onChange={urls => setPageEditForm({...pageEditForm, imageUrls: urls})} 
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">{t('aspectRatioLabel')}</label>
-                    <div className="flex flex-wrap gap-2">
-                       {ASPECT_RATIOS.map(ratio => (
+                  {/* Format Aspect Ratio Selection */}
+                  <div className="space-y-2 text-left">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">{t('aspectRatioLabel')}</label>
+                    <div className="flex bg-gray-50 border border-gray-200 p-0.5 rounded-xl">
+                      {ASPECT_RATIOS.map(ratio => (
                         <button
                           key={ratio}
                           type="button"
                           onClick={() => setPageEditForm({ ...pageEditForm, aspectRatio: ratio })}
                           className={cn(
-                            "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border",
+                            "flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all",
                             pageEditForm.aspectRatio === ratio 
-                              ? "bg-red-600 border-red-600 text-white shadow-lg shadow-red-200" 
-                              : "bg-white border-gray-100 text-gray-400 hover:border-red-600"
+                              ? "bg-white text-gray-900 shadow-sm border border-gray-200" 
+                              : "text-gray-400 hover:text-black"
                           )}
                         >
                           {ratio}
@@ -4191,58 +4451,34 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
                     </div>
                   </div>
 
-                  {(!isStaticPage(isEditingPage || '')) && (
-                    <div className="space-y-4">
-                      <label className="text-xs font-black uppercase tracking-widest text-gray-400">
-                        {language === 'lt' ? 'Kategorija / Tėvinis puslapis' : 'Category / Parent Page'}
+                  {/* Category Select Dropdown */}
+                  {!isStaticPage(isEditingPage || '') && (
+                    <div className="space-y-2 text-left">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        {language === 'lt' ? 'Kategorija' : 'Category'}
                       </label>
                       <select
                         value={pageEditForm.parentId || currentPage}
                         onChange={e => setPageEditForm({ ...pageEditForm, parentId: e.target.value })}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-red-600 outline-none transition-all font-bold text-sm text-gray-700"
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-600 outline-none transition-all font-bold text-xs text-gray-700"
                       >
-                        <optgroup label={language === 'lt' ? 'Srauto matuokliai' : 'Flow Meters'}>
-                          <option value="flow_meters_volumetric">Tūriniai (Volumetric)</option>
-                          <option value="flow_meters_gear">Krumpliaratiniai (Gear)</option>
-                          <option value="flow_meters_turbine">Turbininiai (Turbine)</option>
-                          <option value="flow_meters_coriolis">Koriolio masės (Coriolis)</option>
-                        </optgroup>
-                        <optgroup label={language === 'lt' ? 'Kiti produktai' : 'Other Products'}>
-                          <option value="level_meters">Lygio matuokliai</option>
-                          <option value="industrial_pumps">Pramoniniai siurbliai</option>
-                          <option value="tanker_equipment">Autocisternų įranga</option>
-                          <option value="pipeline_fittings">Vamzdynų armatūra</option>
-                          <option value="tank_fittings">Rezervuarų armatūra</option>
-                          <option value="loading_arms">Užpylimo rankovės</option>
-                          <option value="terminal_equipment">Terminalų įranga</option>
-                          <option value="dry_disconnect">Sauso atjungimo movos</option>
-                        </optgroup>
-                        <optgroup label={language === 'lt' ? 'Sprendimai' : 'Solutions'}>
-                          <option value="aviation">Aviacija</option>
-                          <option value="chemical_terminals">Chemijos terminalai</option>
-                          <option value="lpg_terminals">SND terminalai</option>
-                          <option value="oil_terminals">Naftos produktų terminalai</option>
-                          <option value="oil_production">Alyvų ir tepalų gamyba</option>
-                          <option value="product_blending">Produktų maišymas</option>
-                          <option value="railway">Geležinkelis</option>
-                          <option value="pipeline_cleaning">Vamzdynų išvalymo sistemos</option>
-                        </optgroup>
-                        <optgroup label={language === 'lt' ? 'Paslaugos' : 'Services'}>
-                          <option value="design">Projektavimas</option>
-                          <option value="engineering_consulting">Inžinerinės konsultacijos</option>
-                          <option value="technical_service">Techninis aptarnavimas</option>
-                          <option value="training">Apmokymai</option>
-                          <option value="spare_parts">Atsarginių dalių tiekimas</option>
-                        </optgroup>
+                        <option value="">{language === 'lt' ? '-- Pasirinkite kategoriją --' : '-- Select Category --'}</option>
+                        {getCategoryOptions().map(group => (
+                          <optgroup key={group.label} label={group.label}>
+                            {group.options.map(opt => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </optgroup>
+                        ))}
                       </select>
                     </div>
                   )}
                 </div>
 
                 {currentPage === 'about' && (
-                  <div className="space-y-4 pt-8 border-t border-gray-100">
+                  <div className="pt-4 border-t border-gray-150 space-y-3">
                     <div className="flex justify-between items-center">
-                      <label className="text-xs font-black uppercase tracking-widest text-gray-400">{t('companyStatsLabel')}</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">{t('companyStatsLabel')}</label>
                       <button 
                         onClick={() => setPageEditForm({
                           ...pageEditForm,
@@ -4251,21 +4487,22 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
                             label: { lt: '', en: '', de: '', uk: '' } 
                           }]
                         })}
-                        className="text-[10px] font-black uppercase text-red-600 hover:bg-red-50 px-3 py-1 rounded"
+                        className="text-[9px] font-black uppercase bg-red-50 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 rounded transition-all"
                       >
-                        {t('addStatButton')}
+                        + {t('addStatButton')}
                       </button>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 max-h-[120px] overflow-y-auto pr-1">
                       {(pageEditForm.stats || []).map((stat, idx) => (
-                        <div key={idx} className="p-4 bg-gray-50 rounded-2xl space-y-3 relative group">
+                        <div key={idx} className="p-3 bg-gray-50 rounded-xl border border-gray-200/50 space-y-1 relative group">
                           <button 
+                            type="button"
                             onClick={() => {
                               const newStats = [...(pageEditForm.stats || [])];
                               newStats.splice(idx, 1);
                               setPageEditForm({...pageEditForm, stats: newStats});
                             }}
-                            className="absolute top-2 right-2 p-1 text-gray-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-1 right-1 p-0.5 text-gray-300 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -4277,7 +4514,7 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
                               newStats[idx].value[language] = e.target.value;
                               setPageEditForm({...pageEditForm, stats: newStats});
                             }}
-                            className="w-full px-3 py-2 text-sm font-black text-red-600 bg-white border border-gray-100 rounded-lg outline-none focus:ring-1 focus:ring-red-600"
+                            className="w-full px-2 py-1 text-xs font-black text-red-600 bg-white border border-gray-200 rounded outline-none focus:ring-1 focus:ring-red-600"
                           />
                           <input 
                             placeholder={t('statLabelPlaceholder')}
@@ -4287,85 +4524,52 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
                               newStats[idx].label[language] = e.target.value;
                               setPageEditForm({...pageEditForm, stats: newStats});
                             }}
-                            className="w-full px-3 py-2 text-xs font-bold text-gray-400 bg-white border border-gray-100 rounded-lg outline-none focus:ring-1 focus:ring-red-600"
+                            className="w-full px-2 py-1 text-[10px] font-bold text-gray-400 bg-white border border-gray-200 rounded outline-none focus:ring-1 focus:ring-red-600"
                           />
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
+              </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                  {/* Left Column: Input and Toolbar */}
-                  <div className="space-y-4">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">{t('contentLabel')} ({language.toUpperCase()})</label>
-                    <MarkdownToolbar onInsert={(prefix, suffix) => {
-                      const textarea = document.getElementById(`page-content-edit`) as HTMLTextAreaElement;
-                      if (!textarea) return;
-                      const start = textarea.selectionStart;
-                      const end = textarea.selectionEnd;
+              {/* The Google Docs Worksheet Area */}
+              <div className="flex-1 overflow-y-auto bg-gray-100 py-10 px-6 sm:px-12 flex flex-col items-center">
+                <div className="w-full max-w-3xl min-h-[500px] flex flex-col">
+                  <RichTextEditor
+                    id="page-content-edit"
+                    value={pageEditForm.content?.[language] || ''}
+                    onChange={html => {
                       const currentContent = pageEditForm.content || {};
-                      const text = (currentContent[language] as string) || '';
-                      const newText = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end);
                       setPageEditForm({
                         ...pageEditForm,
-                        content: { ...currentContent, [language]: newText } as any
+                        content: { ...currentContent, [language]: html } as any
                       });
-                      setTimeout(() => {
-                        textarea.focus();
-                        textarea.setSelectionRange(start + prefix.length, end + prefix.length);
-                      }, 10);
-                    }} />
-                    <textarea 
-                      id="page-content-edit"
-                      value={pageEditForm.content?.[language] || ''}
-                      onChange={e => setPageEditForm({
-                        ...pageEditForm, 
-                        content: { ...pageEditForm.content, [language]: e.target.value } as any
-                      })}
-                      placeholder={t('pageContentPlaceholder')}
-                      className="w-full min-h-[420px] px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all font-medium text-sm leading-relaxed"
-                    />
-                  </div>
-
-                  {/* Right Column: Word-like Live Preview */}
-                  <div className="space-y-4 flex flex-col h-full">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-black uppercase tracking-widest text-red-600 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                        {t('livePreview')}
-                      </label>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-gray-100 px-2 py-1 rounded">{t('wordStyle')}</span>
-                    </div>
-                    <div className="w-full h-[460px] bg-gray-50 border border-gray-200 rounded-2xl p-4 overflow-y-auto shadow-inner">
-                      <div className="border border-gray-100 p-8 shadow-md bg-white min-h-[400px] relative rounded-lg">
-                        <div className="absolute top-0 right-0 p-3 text-[8px] font-mono text-gray-300 pointer-events-none uppercase tracking-widest">{t('documentHeader')}</div>
-                        <div className="prose prose-sm prose-red max-w-none text-gray-700 leading-relaxed font-medium selection:bg-red-100">
-                          {pageEditForm.content?.[language] ? (
-                            <Markdown rehypePlugins={[rehypeRaw]}>{pageEditForm.content[language]}</Markdown>
-                          ) : (
-                            <span className="italic text-gray-300 text-xs">{t('previewPrompt')}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    }}
+                    placeholder={t('pageContentPlaceholder')}
+                    language={language}
+                  />
                 </div>
               </div>
 
-              <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-4">
-                <button 
-                  onClick={() => setIsEditingPage(null)}
-                  className="px-6 py-3 font-bold text-gray-500 hover:text-black transition-colors"
-                >
-                  {t('cancel')}
-                </button>
-                <button 
-                  onClick={handleSavePage}
-                  className="px-10 py-3 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition-all active:scale-95"
-                >
-                  {t('savePage')}
-                </button>
+              {/* Action Buttons */}
+              <div className="px-8 py-5 bg-white border-t border-gray-200/80 flex justify-between items-center font-sans shrink-0">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{language === 'lt' ? 'Pakeitimai išsaugomi Firestore' : 'All updates are secure inside Firestore'}</span>
+                
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => setIsEditingPage(null)}
+                    className="px-6 py-2.5 font-black text-[10px] uppercase text-gray-500 hover:text-black border border-gray-200 rounded-xl hover:bg-gray-50 transition-all"
+                  >
+                    {t('cancel')}
+                  </button>
+                  <button 
+                    onClick={handleSavePage}
+                    className="px-8 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] tracking-wider rounded-xl transition-all shadow-lg shadow-red-200 active:scale-95"
+                  >
+                    {t('savePage')}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -4495,64 +4699,26 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                  {/* Left Column: Input and Toolbar */}
-                  <div className="space-y-4">
-                    <label className="text-xs font-black uppercase tracking-widest text-gray-400">{t('contentLabel')} ({language.toUpperCase()})</label>
-                    <MarkdownToolbar onInsert={(prefix, suffix) => {
-                      const textarea = document.getElementById(`news-content-edit`) as HTMLTextAreaElement;
-                      if (!textarea) return;
-                      const start = textarea.selectionStart;
-                      const end = textarea.selectionEnd;
+                <div className="space-y-4">
+                  <label className="text-xs font-black uppercase tracking-widest text-gray-400">{t('contentLabel')} ({language.toUpperCase()})</label>
+                  <RichTextEditor
+                    id="news-content-edit"
+                    value={
+                      (() => {
+                        const contentObj = typeof editForm.content === 'object' ? editForm.content : { lt: editForm.content || '', en: '', de: '', uk: '' };
+                        // @ts-ignore
+                        return contentObj?.[language] || '';
+                      })()
+                    }
+                    onChange={html => {
                       const currentContent = typeof editForm.content === 'object' ? { ...editForm.content } : { lt: editForm.content || '', en: '', de: '', uk: '' };
                       // @ts-ignore
-                      const text = (currentContent[language] as string) || '';
-                      const newText = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end);
-                      // @ts-ignore
-                      currentContent[language] = newText;
+                      currentContent[language] = html;
                       setEditForm({...editForm, content: currentContent});
-                      setTimeout(() => {
-                        textarea.focus();
-                        textarea.setSelectionRange(start + prefix.length, end + prefix.length);
-                      }, 10);
-                    }} />
-                    <textarea 
-                      id="news-content-edit"
-                      // @ts-ignore
-                      value={editForm.content?.[language] || ''}
-                      onChange={e => {
-                        const newContent = typeof editForm.content === 'object' ? { ...editForm.content } : { lt: editForm.content || '', en: '', de: '', uk: '' };
-                        // @ts-ignore
-                        newContent[language] = e.target.value;
-                        setEditForm({...editForm, content: newContent});
-                      }}
-                      placeholder={t('storyPlaceholder')}
-                      className="w-full min-h-[420px] px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition-all font-mono text-sm leading-relaxed"
-                    />
-                  </div>
-
-                  {/* Right Column: Word-like Live Preview */}
-                  <div className="space-y-4 flex flex-col h-full">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-black uppercase tracking-widest text-red-600 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                        {t('livePreview')}
-                      </label>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider bg-gray-100 px-2 py-1 rounded">{t('wordStyle')}</span>
-                    </div>
-                    <div className="w-full h-[460px] bg-gray-50 border border-gray-200 rounded-2xl p-4 overflow-y-auto shadow-inner">
-                      <div className="border border-gray-100 p-8 shadow-md bg-white min-h-[400px] relative rounded-lg">
-                        <div className="absolute top-0 right-0 p-3 text-[8px] font-mono text-gray-300 pointer-events-none uppercase tracking-widest">{t('documentHeader')}</div>
-                        <div className="prose prose-sm prose-red max-w-none text-gray-700 leading-relaxed font-medium selection:bg-red-100">
-                          {getPostContent(editForm as NewsPost, language) ? (
-                            <Markdown rehypePlugins={[rehypeRaw]}>{getPostContent(editForm as NewsPost, language)}</Markdown>
-                          ) : (
-                            <span className="italic text-gray-300 text-xs">{t('documentPlaceholder')}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    }}
+                    placeholder={t('storyPlaceholder')}
+                    language={language}
+                  />
                 </div>
               </div>
 
@@ -4582,13 +4748,35 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-8">
-                <img src="./logotipas_spt.png" alt="SPT logo" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
+                <img src="/logotipas_spt.png" alt="SPT logo" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
                 <div>
                   <h1 className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">{language === 'lt' ? 'UAB „Skysčių perpylimo technologijos“' : 'UAB Liquid Transfer Technologies'}</h1>
                 </div>
               </div>
-              <p className="text-gray-400 max-w-sm leading-relaxed font-medium">
-                {t('footerDesc')}
+              <p className="text-gray-400 max-w-sm leading-relaxed font-medium group relative">
+                <span dangerouslySetInnerHTML={{ __html: pagesContent['footer']?.content?.[language] || t('footerDesc') }} />
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      setIsEditingPage('footer');
+                      setPageEditForm(pagesContent['footer'] || {
+                        id: 'footer',
+                        title: { lt: 'Poraštė', en: 'Footer', de: 'Footer', uk: 'Footer' },
+                        content: {
+                          lt: TRANSLATIONS.footerDesc.lt,
+                          en: TRANSLATIONS.footerDesc.en,
+                          de: TRANSLATIONS.footerDesc.de,
+                          uk: TRANSLATIONS.footerDesc.uk
+                        },
+                        imageUrls: [],
+                        updatedAt: null
+                      });
+                    }}
+                    className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 bg-red-600 hover:bg-red-700 text-white text-[9px] font-black uppercase rounded transition-all cursor-pointer align-middle"
+                  >
+                    <Edit2 className="w-2 h-2" /> Redaguoti
+                  </button>
+                )}
               </p>
             </div>
             
@@ -4606,9 +4794,9 @@ T. Masiulio g. 18B, LT-52460 Kaunas </p>
             <div>
               <h5 className="font-black mb-8 uppercase tracking-[0.2em] text-[10px] text-gray-500 italic">{t('contact')}</h5>
               <ul className="space-y-4 text-sm font-medium text-gray-400">
-                <li className="flex items-center gap-2"><Mail className="w-3 h-3 text-red-600" /> dgarmus@spt.lt</li>
+                <li className="flex items-center gap-2"><Mail className="w-3 h-3 text-red-600" /> info@spt.lt</li>
                 <li className="flex items-center gap-2"><Phone className="w-3 h-3 text-red-600" /> +370 37 407277</li>
-                <li className="flex items-center gap-2"><MapPin className="w-3 h-3 text-red-600" /> T. Masiulio g. 18b, Kaunas</li>
+                <li className="flex items-center gap-2"><MapPin className="w-3 h-3 text-red-600" /> T. Masiulio 18B, LT-52460 Kaunas</li>
               </ul>
               <div className="mt-12">
                 <button 
