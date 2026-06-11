@@ -1293,7 +1293,7 @@ function AdminPage({
         className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl"
       >
         <div className="text-center mb-8">
-          <img src="/logotipas_spt.png" alt="SPT" className="h-12 mx-auto mb-4" />
+          <img src="./logotipas_spt.png" alt="SPT" className="h-12 mx-auto mb-4" />
           <h2 className="text-2xl font-bold uppercase tracking-tight">Admin portalas</h2>
           <p className="text-gray-500 text-sm">Prisijunkite prie svetainės valdymo</p>
         </div>
@@ -3347,7 +3347,7 @@ T. Masiulio 18B, LT-52460 Kaunas </p>
         <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center gap-4">
             <button onClick={() => setCurrentPage('home')} className="flex items-center gap-4 hover:opacity-80 transition-opacity shrink-0">
-              <img src="/logotipas_spt.png" alt="SPT logotipas_spt" className="h-12 w-auto object-contain" referrerPolicy="no-referrer" />
+              <img src="./logotipas_spt.png" alt="SPT logotipas_spt" className="h-12 w-auto object-contain" referrerPolicy="no-referrer" />
               <div className="hidden xl:block text-left">
                 <h1 
                   className="text-[10px] text-gray-500 font-medium tracking-[0.15em] uppercase max-w-[140px] leading-snug mt-[10px]"
@@ -3482,7 +3482,7 @@ T. Masiulio 18B, LT-52460 Kaunas </p>
             >
               <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
                 <div className="flex items-center gap-3">
-                  <img src="/logotipas_spt.png" alt="SPT logotipas_spt" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+                  <img src="./logotipas_spt.png" alt="SPT logotipas_spt" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
                   <span className="text-[10px] text-gray-500 font-medium tracking-[0.2em] uppercase" >Skysčių perpylimo technologijos</span>
                 </div>
                 <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
@@ -3710,7 +3710,7 @@ T. Masiulio 18B, LT-52460 Kaunas </p>
         <header className="relative py-16 md:py-32 overflow-hidden bg-black text-white group/hero">
           <div className="absolute inset-0 z-0">
             <img 
-              src="/cover-image.jpg" 
+              src="./cover-image.jpg" 
               alt="Cover" 
               className="w-full h-full object-cover grayscale brightness-50 group-hover/hero:grayscale-0 group-hover/hero:brightness-90 transition-all duration-1000"
               referrerPolicy="no-referrer"
@@ -4748,7 +4748,7 @@ T. Masiulio 18B, LT-52460 Kaunas </p>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-8">
-                <img src="/logotipas_spt.png" alt="SPT logo" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
+                <img src="./logotipas_spt.png" alt="SPT logo" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
                 <div>
                   <h1 className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">{language === 'lt' ? 'UAB „Skysčių perpylimo technologijos“' : 'UAB Liquid Transfer Technologies'}</h1>
                 </div>
