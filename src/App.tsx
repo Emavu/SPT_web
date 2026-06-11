@@ -3330,7 +3330,7 @@ T. Masiulio 18B, LT-52460 Kaunas </p>
 
   return (
     <Routes>
-      <Route path="/admin" element={
+      <Route path="./admin" element={
         <AdminPage 
           user={user} 
           profile={profile} 
@@ -4800,7 +4800,7 @@ T. Masiulio 18B, LT-52460 Kaunas </p>
               </ul>
               <div className="mt-12">
                 <button 
-                  onClick={() => navigate('/admin')}
+                  onClick={() => navigate('./admin')}
                   className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-700 hover:text-red-600 transition-colors flex items-center gap-2 py-2 px-4 border border-gray-900 rounded-lg"
                 >
                   <Shield className="w-3 h-3" /> Admin Portal
