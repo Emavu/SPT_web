@@ -2712,7 +2712,7 @@ function App() {
                           {(() => {
                             const stats = mainPageData?.stats || [
                               { value: { lt: '2001', en: '2001', de: '2001', uk: '2001' }, label: { lt: 'Įkurta', en: 'Established', de: 'Gegründet', uk: 'Засновано' } },
-                              { value: { lt: '20+', en: '20+', de: '20+', uk: '20+' }, label: { lt: 'Metų patirties', en: 'Years of Experience', de: 'Jahre Erfahrung', uk: 'Років досвіду' } }
+                              { value: { lt: '25+', en: '25+', de: '25+', uk: '25+' }, label: { lt: 'Metų patirties', en: 'Years of Experience', de: 'Jahre Erfahrung', uk: 'Років досвіду' } }
                             ];
                             return (
                               <div className="grid grid-cols-2 gap-8 py-8">
