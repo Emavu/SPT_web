@@ -2916,8 +2916,6 @@ T. Masiulio 18B, LT-52460 Kaunas </p>
                     <a href="mailto:info@spt.lt" className="text-red-600 hover:underline">info@spt.lt</a>
                     <br />
                     +370 37 407277
-                    <br />
-                    +370 687 97000
                   </p>
                 </div>
               </div>
