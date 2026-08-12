@@ -2700,7 +2700,8 @@ function App() {
                       "prose prose-sm prose-red text-gray-500 font-medium max-w-none relative transition-all duration-700 overflow-hidden break-words flex-grow",
                       !expandedPages[currentPage] && (mainPageData?.content?.[language]?.length > 1275) ? "max-h-[530px]" : "max-h-none"
                     )}>
-                      <div className="space-y-6">
+                     {currentPage === 'about' ? (
+                        <div className="space-y-6">
                           {mainPageData?.content?.[language] && mainPageData.content[language].trim() !== '' ? (
                             <Markdown rehypePlugins={[rehypeRaw]}>{mainPageData.content[language]}</Markdown>
                           ) : (
