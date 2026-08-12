@@ -2701,8 +2701,6 @@ function App() {
                       !expandedPages[currentPage] && (mainPageData?.content?.[language]?.length > 1275) ? "max-h-[530px]" : "max-h-none"
                     )}>
                       <div className="space-y-6">
--                          <p>{t('aboutText1')}</p>
--                          <p>{t('aboutText2')}</p>
 +                          {mainPageData?.content?.[language] && mainPageData.content[language].trim() !== '' ? (
 +                            <Markdown rehypePlugins={[rehypeRaw]}>{mainPageData.content[language]}</Markdown>
 +                          ) : (
